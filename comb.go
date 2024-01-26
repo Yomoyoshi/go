@@ -8,12 +8,12 @@ import (
 
 const sum = 2024
 const maxIndex = 6
-var indexes = []int {438,240,418,276,256,348,258,382,292,310,296,328}
+var numbers = []int {438,240,418,276,256,348,258,382,292,310,296,328}
 
 var workers = runtime.NumCPU()
 
 type Result struct {
-	indexes []int 
+	n []int 
 }
 
 type Job struct {
@@ -27,10 +27,10 @@ func (job Job) Do() {
 
 func main() {
 	fmt.Println("Start")
-	if maxIndex > len(indexes) {
+	if maxIndex > len(numbers) {
 		log.Fatalf("Max index %d is bigger than the array length", maxIndex)
 	}
-	lenOfResults := factorial(len(indexes)) / ( factorial(maxIndex) * factorial (len(indexes) - maxIndex ))
+	lenOfResults := factorial(len(numbers)) / ( factorial(maxIndex) * factorial (len(numbers) - maxIndex ))
 	jobs := make(chan Job, workers)
 	results := make (chan Result, lenOfResults) 
 	done := make(chan struct{}, workers)
@@ -46,13 +46,13 @@ func main() {
 func processResults(results <-chan Result) {
 	for r := range results {
 		s := 0
-		for _, v := range r.indexes {
+		for _, v := range r.n {
 			if s += v; s > sum {
 				break;
 			}
 		}
 		if s == sum {
-			fmt.Printf("Result = %d\n", r.indexes)
+			fmt.Printf("Result = %d\n", r.n)
 		}
     }
 }
@@ -73,7 +73,7 @@ func awaitCompletion(done <-chan struct{}, results chan Result) {
 
 func addNumber(jobs chan<- Job, results chan<- Result) {
 	s := make([]int, 0, maxIndex)
-	for i := 0; i < len(indexes); i++ {
+	for i := 0; i < len(numbers); i++ {
 		addNumbers(jobs, s, i, results)
 	}
 	close(jobs)
@@ -81,14 +81,14 @@ func addNumber(jobs chan<- Job, results chan<- Result) {
 
 func addNumbers(jobs chan<- Job, subset []int, t int, results chan<- Result) {
 	s := make([]int, 0, maxIndex)
-	s = append(subset, indexes[t])				
+	s = append(subset, numbers[t])				
 	if len(s) == maxIndex {
 		ss := make([]int, 0, maxIndex)
 		ss = append(ss, s...)
 		jobs <- Job{ss, results}		
 	} else {
-		for i := t + 1; i < len(indexes); i++ {
-			if len(indexes) - i >= maxIndex - len(s){
+		for i := t + 1; i < len(numbers); i++ {
+			if len(numbers) - i >= maxIndex - len(s){
 				addNumbers(jobs, s, i, results)
 			} 		
 		}
